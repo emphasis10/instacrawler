@@ -6,7 +6,14 @@
         "first_post" : "//*[@id=\"react-root\"]/section/main/article/div[2]/div/div[1]/div[1]",
         "recent_post" : "//*[@id=\"react-root\"]/section/main/article/div[2]/div",
         "in_post_content" : "//*[@id=\"react-root\"]/section/main/div/div[1]/article/div[2]/div[1]/ul/div/li/div/div/div[2]",
-        "in_post_date" : "/html/body/div[1]/section/main/div/div/article/div[2]/div[1]/ul/div/li/div/div/div[2]/div/div/time"          
+        "in_post_date" : "/html/body/div[1]/section/main/div/div/article/div[2]/div[1]/ul/div/li/div/div/div[2]/div/div/time",
+        "in_post_username" : "//*[@id=\"react-root\"]/section/main/div/div[1]/article/header/div[2]/div[1]/div[1]/a",
+        "in_post_likes" : "//*[@id=\"react-root\"]/section/main/div/div[1]/article/div[2]/section[2]/div/div/button/span",
+        "in_post_img" : "//*[@id=\"react-root\"]/section/main/div/div[1]/article/div[1]/div/div/div[2]/div/div/div/ul",
+        "in_post_single_img" : "//*[@id=\"react-root\"]/section/main/div/div[1]/article/div[1]/div/div/div[1]/div[1]/img",
+        "in_post_multi_img" : "//*[@id=\"react-root\"]/section/main/div/div[1]/article/div[1]/div/div/div[2]/div/div/div/ul/li[2]/div/div/div/div[1]/div[1]/img",
+        "in_post_video_img" : "//*[@id=\"react-root\"]/section/main/div/div[1]/article/div[1]/div/div/div[1]/div/div/img",
+        "in_post_common_img" : "//*[@id=\"react-root\"]/section/main/div/div[1]/article/div[1]/div/div"
     },
     "range" : 1
 }

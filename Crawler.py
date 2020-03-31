@@ -7,6 +7,7 @@ import json
 import pickle
 import os
 import csv
+import logging
 
 import dateutil.parser
 
@@ -17,7 +18,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-#https://www.selenium.dev/docs/site/en/
+from bs4 import BeautifulSoup
 
 class Crawler:
 	def __init__(self):
@@ -26,12 +27,15 @@ class Crawler:
 		else:
 			self.driver_dir = 'chromedriver.exe' #for windows system
 
+		logging.basicConfig(filename='./Log/crawler.log', level=logging.INFO)
+		#Set log file path and logging level
+
 		self.urlbase = "https://www.instagram.com/explore/tags/"
 		self.posturl = "https://www.instagram.com/p/"
 		self.login_url = "https://www.instagram.com/accounts/login/"
 
 		self.station_list = []
-		with open('station.csv','r') as f:
+		with open('station.csv','r', encoding='utf-8') as f:
 			tmp = csv.reader(f)
 			for name in tmp:
 				self.station_list.append(name[0])
@@ -48,11 +52,10 @@ class Crawler:
 			self.path = data['path']
 			self.day_range = int(data['range'])
 
-
 	def __del__(self):
 		self.driver.close()
 		self.driver_post.close()
-
+	
 	def login(self, driver):
 		with open('account.json') as f:
 			acc = json.load(f)
@@ -79,9 +82,10 @@ class Crawler:
 
 		self.driver_post = webdriver.Chrome(self.driver_dir, chrome_options=options)
 		self.driver_post.implicitly_wait(5)
+		logging.debug("Completed Chrome driver loading.")
 
 	def link_loading(self, seed_url, batch_size = 100):
-		print('Link loading with batch size : %d' %(batch_size))
+		logging.info('Link loading with batch size : %d' %(batch_size))
 		self.link_collection = set()
 
 		root_path = self.path['recent_post']
@@ -120,68 +124,93 @@ class Crawler:
 				time_flag = False
 		return time_flag
 	
+	def safe_post_data(self, path_name, attr = 'innerHTML'):
+		waitcnt = 0
+		while True:
+			try:
+				inner = self.driver_post.find_element_by_xpath(self.path[path_name]).get_attribute(attr)
+				return inner
+			except Exception as e:
+				logging.error(e)
+				time.sleep(0.5)
+				if waitcnt > 3:
+					waitcnt = 0
+					self.driver_post.refresh()
+
+	def get_img_url(self):
+		'''
+		3 cases in image
+			1. Single image - "in_post_single_img"
+			2. Mutli image - "in_post_multi_img"
+			3. Video thumbnail - "in_post_video_img"
+		'''
+		self.safe_post_data('in_post_content') #for element loading
+
+		source = self.driver_post.find_element_by_xpath(self.path['in_post_common_img']).get_attribute('innerHTML')
+		soup = BeautifulSoup(source, 'html.parser')
+		
+		if soup.find('video'):
+			return None
+		return soup.find('img')['src']
+
+		
 	def single_crawling(self, key):
 		self.driver_post.get(self.posturl + key)
 
-		waitcnt = 0
-		while True:
-			try:
-				post_date = dateutil.parser.parse(self.driver_post.find_element_by_xpath(self.path['in_post_date']).get_attribute("datetime"))
-				break
-			except Exception as e:
-				print(e)
-				time.sleep(0.5)
-				waitcnt += 1
-				if waitcnt > 3:
-					waitcnt = 0
-					self.driver_post.refresh()
+		data = dict()
 
-		post_date += datetime.timedelta(hours=9)
+		#get postdate
+		data['date'] = dateutil.parser.parse(self.safe_post_data('in_post_date', 'datetime'))
+		data['date'] += datetime.timedelta(hours=9)
 
-		if int((self.start_time.date() - post_date.date()).days) > self.day_range:
+		if int((self.start_time.date() - data['date'].date()).days) > self.day_range:
 			return False
 		
-		waitcnt = 0
-		while True:
-			try:
-				post_content = self.driver_post.find_element_by_xpath(self.path['in_post_content']).get_attribute("innerHTML")
-				break
-			except Exception as e:
-				print(e)
-				time.sleep(0.5)
-				waitcnt += 1
-				if waitcnt > 3:
-					waitcnt = 0
-					self.driver_post.refresh()
+		#get content
+		data['content'] = self.safe_post_data('in_post_content')
+		
+		#get username
+		data['username'] = self.safe_post_data('in_post_username')
 
-		self.contents_db[key] = {"date" : post_date, "content" : post_content}
+		#get likes
+		#data['likes'] = self.safe_post_data('in_post_likes')
+
+		#get first img_url
+		data['img_url'] = self.get_img_url()
+		if not data['img_url']:
+			return True
+		
+		self.contents_db[key] = data
 		return True
 
 	def run(self):
 		self.login(self.driver)
 		self.login(self.driver_post)
 
-		print('start time: %s' % (self.start_time))
+		logging.info('start time: %s' % (self.start_time))
 		for station in self.station_list:
 			for suffix in self.suffix_list:
 				self.contents_db.clear()
 				hashtag = station + suffix
 				seed_url = self.urlbase + parse.quote(hashtag)
-				#self.tag_crawling(seed_url)
 				try:
 					self.driver.get(seed_url)
 				except:
+					logging.info('No page with tag : %s' % (hashtag))
 					#no page with hashtag, error occured
 					continue
+
 				self.driver.find_element_by_tag_name('body').send_keys("webdriver" + Keys.PAGE_DOWN)
 				self.driver.find_element_by_tag_name('body').send_keys("webdriver" + Keys.PAGE_DOWN)
+
+				logging.info('Crawling start with tag : %s' % (hashtag))
 				while True:
 					load_flag = self.link_loading(seed_url, batch_size=self.batch_size)
-					print('Successfully load %d new links' % (len(self.link_collection)))
+					logging.info('Successfully load %d new links' % (len(self.link_collection)))
 					batch_flag = self.batch_crawling()
-					print('Successfully crawling %d new links' % (len(self.link_collection)))
+					logging.info('Successfully crawling %d new links' % (len(self.link_collection)))
 
-					print('Now %d in db' % (len(self.contents_db)))
+					logging.info('Now %d in db' % (len(self.contents_db)))
 					if load_flag and batch_flag:
 						continue
 					break
@@ -189,7 +218,7 @@ class Crawler:
 				fname = str(int(datetime.datetime.now().timestamp())) + '.pickle'
 				with open(fname, 'wb') as f:
 					pickle.dump(self.contents_db, f)
-				print('Crawling finished with no errors!')
+				logging.info('Crawling finished with tag : %s' % (hashtag))
 
 				
 if __name__ == "__main__":
