@@ -14,7 +14,7 @@ instacrawler는 크게 `Crawler`와 `Preprocessing`으로 나눠진다.
 - Posted date
 - Raw post content(with HTML tag forms)
 - User name
-- Likes
+- ~~Likes~~
 - Image URL
 
 ### Preprocessing.py
