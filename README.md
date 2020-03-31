@@ -11,6 +11,6 @@ instacrawler는 크게 `Crawler`와 `Preprocessing`으로 나눠진다.
 - Image URL
 
 ## Preprocessing.py
-Preprocessing은 Crawler가 drop한 pickle을 열어서 Raw post content로부터 다음과 같은 데이터를 추출하고 데이터를 form에 맞게 Database에 commit한다.
+`Preprocessing`은 `Crawler`가 drop한 pickle을 열어서 Raw post content로부터 다음과 같은 데이터를 추출하고 데이터를 form에 맞게 Database에 commit한다.
 - Hashtags
 - Processed main content(without HTML tag form)
