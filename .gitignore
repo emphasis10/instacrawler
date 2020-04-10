@@ -1,5 +1,6 @@
 *.csv
 *.pickle
+*.exe
 account.json
 chromedriver
 /Log
