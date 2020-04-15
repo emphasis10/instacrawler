@@ -40,7 +40,7 @@ class Crawler:
 			for name in tmp:
 				self.station_list.append(name[0])
 
-		self.suffix_list = ['역']
+		self.suffix_list = ['']
 		self.driver_setting()
 		self.start_time = datetime.datetime.now()
 		self.contents_db = dict()
