@@ -1,5 +1,27 @@
 # instacrawler
 
+## GET READY
+```console
+$ pip install requirements.txt
+$ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add - 
+$ sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+$ sudo apt-get update
+$ sudo apt-get install google-chrome-stable
+$ google-chrome --version
+```
+Chrome의 version을 확인하여 driver 다운로드
+[Chromedriver](https://chromedriver.chromium.org/downloads)
+해당 버전에 맞는 driver 설치를 누르면, OS 별로 파일 다운로드 창이 나오는데 여기서 해당 OS를 '마우스 우클릭 - 링크 주소 복사'하여,
+
+```console
+$ wget https://chromedriver.storage.googleapis.com/81.0.4044.69/chromedriver_linux64.zip
+$ sudo apt-get install unzip
+$ unzip chromedriver_linux64.zip
+$ rm chromedriver_linux64.zip
+$ ls
+```
+chromedriver가 생성된 것을 볼 수 있다.
+
 ## Requirements
 - Python 3.x
 - Selenium
