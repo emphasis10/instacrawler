@@ -74,6 +74,8 @@ class Crawler:
 		options.add_argument('headless')
 		options.add_argument('window-size=1920x1080')
 		options.add_argument('disable-gpu')
+		options.add_argument('no-sandbox')
+		options.add_argument('--disable-dev-shm-usage')
 		prefs = {"profile.managed_default_content_settings.images": 2}
 		options.add_experimental_option("prefs", prefs)
 
