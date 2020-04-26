@@ -127,6 +127,7 @@ class Crawler:
 	def safe_post_data(self, path_name, attr = 'innerHTML'):
 		waitcnt = 0
 		while True:
+			waitcnt += 1
 			try:
 				inner = self.driver_post.find_element_by_xpath(self.path[path_name]).get_attribute(attr)
 				return inner
