@@ -1,6 +1,7 @@
 # instacrawler
 
 ## GET READY
+### Installation
 ```console
 $ pip install requirements.txt
 $ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add - 
@@ -21,6 +22,23 @@ $ rm chromedriver_linux64.zip
 $ ls
 ```
 chromedriver가 생성된 것을 볼 수 있다.
+
+### Set up
+**Make log directory**
+```console
+$ cd instacrawler
+$ mkdir Log
+```
+
+**Make account.json**  
+```json
+$ vim account.json
+{
+  "id":"my_id",
+  "password":"my_password"
+}
+```
+
 
 ## Requirements
 - Python 3.x
