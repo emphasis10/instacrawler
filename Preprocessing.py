@@ -56,5 +56,5 @@ class Preprocessing:
             os.remove(self.work)
 
 if __name__ == "__main__":
-	preproc = Preprocessing()
-	preproc.run()
+    preproc = Preprocessing()
+    reproc.run()
