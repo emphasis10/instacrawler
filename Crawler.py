@@ -69,7 +69,7 @@ class Crawler:
         driver.find_element_by_xpath("//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[4]/button").click()
         time.sleep(5)
 
-    def driver_setting(self):
+    def driver_setting(self):   
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
         options.add_argument('window-size=1920x1080')
@@ -122,7 +122,7 @@ class Crawler:
     def batch_crawling(self):
         time_flag = True
         for key in tqdm(self.link_collection):
-            if self.single_crawling(key) == False:
+            if self.single_crawling_bs4(key) == False:
                 time_flag = False
         return time_flag
     
@@ -136,9 +136,10 @@ class Crawler:
             except Exception as e:
                 logging.error(e)
                 time.sleep(0.5)
-                if waitcnt > 3:
+                if waitcnt > 10:
                     waitcnt = 0
                     self.driver_post.refresh()
+                    time.sleep(5)
 
     def get_img_url(self):
         '''
@@ -155,8 +156,7 @@ class Crawler:
         if soup.find('video'):
             return None
         return soup.find('img')['src']
-
-        
+    
     def single_crawling(self, key):
         self.driver_post.get(self.posturl + key)
 
@@ -183,6 +183,46 @@ class Crawler:
         if not data['img_url']:
             return True
         
+        self.contents_db[key] = data
+        return True
+
+    def single_crawling_bs4(self, key):
+        self.driver_post.get(self.posturl + key)
+        
+        pageString = self.driver.page_source
+        bsObj = BeautifulSoup(pageString, "lxml")
+
+        data = dict()
+
+        data['date'] = dateutil.parser.parse(bsObj.find('a', class_='c-Yi7').time['datetime'])
+        data['date'] += datetime.timedelta(hours=9)
+
+        if int((self.start_time.date() - data['date'].date()).days) > self.day_range:
+            return False
+
+        #get content
+        data['content'] = bsObj.find('div', class_='C4VMK').span
+        
+        #get username
+        data['username'] = bsObj.find('div', class_='C4VMK').h2.div.a.text
+
+        #get likes
+        data['likes'] = 0 #default likes -> 0
+        try:
+            data['likes'] = int(bsObj.find('div', class_='Nm9Fw').button.span.text)
+        except: pass
+        
+        #get first img_url
+
+        try:
+            data['img_url'] = bsObj.find('img', class_='FFVAD')['src'] #for image
+        except:
+            data['img_url'] = bsObj.find('video', class_='tWeCl')['poster'] #for video poster
+        
+        '''
+        if not data['img_url']:
+            return True
+        '''
         self.contents_db[key] = data
         return True
 
