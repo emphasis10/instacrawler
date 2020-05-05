@@ -119,8 +119,8 @@ class Crawler:
     def batch_crawling(self):
         time_flag = True
         for key in tqdm(self.link_collection):
-            time_flag &= self.single_crawling(key)
-            time.sleep(float(random.randrange(1000, 1500) / 1000))
+            time_flag &= self.single_crawling_bs4(key)
+            time.sleep(float(random.randrange(1800, 2100) / 1000))
         return time_flag
     
     def safe_post_data(self, path_name, attr = 'innerHTML'):
@@ -210,7 +210,7 @@ class Crawler:
                 data['content'] = self.bsObj.find('div', class_='C4VMK').span
                 
                 #get username
-                data['username'] = self.bsObj.find('div', class_='C4VMK').h2.div.a.text
+                data['username'] = self.bsObj.find('div', class_='e1e1d').a.text
 
                 #get likes
                 data['likes'] = 0 #default likes -> 0
@@ -223,8 +223,12 @@ class Crawler:
                 try:
                     data['img_url'] = self.bsObj.find('img', class_='FFVAD')['src'] #for image
                 except:
-                    data['img_url'] = self.bsObj.find('video', class_='tWeCl')['poster'] #for video poster
+                    try:
+                        data['img_url'] = self.bsObj.find('video', class_='tWeCl')['poster']  #for video poster
+                    except:
+                        return False
                 break
+
             except:
                 self.reloader()
 
