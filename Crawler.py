@@ -122,8 +122,7 @@ class Crawler:
     def batch_crawling(self):
         time_flag = True
         for key in tqdm(self.link_collection):
-            if self.single_crawling_bs4(key) == False:
-                time_flag = False
+            time_flag &= self.single_crawling_bs4(key)
         return time_flag
     
     def safe_post_data(self, path_name, attr = 'innerHTML'):
@@ -188,13 +187,18 @@ class Crawler:
 
     def single_crawling_bs4(self, key):
         self.driver_post.get(self.posturl + key)
+        date = dict()
         
-        pageString = self.driver.page_source
-        bsObj = BeautifulSoup(pageString, "lxml")
-
-        data = dict()
-
-        data['date'] = dateutil.parser.parse(bsObj.find('a', class_='c-Yi7').time['datetime'])
+        while True:
+            pageString = self.driver_post.page_source
+            bsObj = BeautifulSoup(pageString, "lxml")
+            try:
+                data['date'] = dateutil.parser.parse(bsObj.find('a', class_='c-Yi7').time['datetime'])
+                break
+            except: pass
+            time.sleep(5)
+            driver_post.refresh()
+            
         data['date'] += datetime.timedelta(hours=9)
 
         if int((self.start_time.date() - data['date'].date()).days) > self.day_range:
