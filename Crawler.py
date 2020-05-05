@@ -123,6 +123,8 @@ class Crawler:
         time_flag = True
         for key in tqdm(self.link_collection):
             time_flag &= self.single_crawling_bs4(key)
+            time.sleep(float(random.randrange(2000, 2500) / 1000))
+        time.sleep(15)
         return time_flag
     
     def safe_post_data(self, path_name, attr = 'innerHTML'):

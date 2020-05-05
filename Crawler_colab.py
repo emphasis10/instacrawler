@@ -113,7 +113,7 @@ class Crawler:
             self.driver.find_element_by_tag_name('body').send_keys("webdriver" + Keys.PAGE_DOWN)
             self.driver.find_element_by_tag_name('body').send_keys("webdriver" + Keys.PAGE_DOWN)
             self.driver.find_element_by_tag_name('body').send_keys("webdriver" + Keys.PAGE_DOWN)
-            time.sleep(3)
+            time.sleep(5)
         return True
     
     def batch_crawling(self):
@@ -236,8 +236,8 @@ class Crawler:
         return True
 
     def run(self):
-        self.login(self.driver)
-        self.login(self.driver_post)
+        #self.login(self.driver)
+        #self.login(self.driver_post)
 
         logging.info('start time: %s' % (self.start_time))
         for station in self.station_list:
