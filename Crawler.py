@@ -226,10 +226,10 @@ class Crawler:
                     return False
 
                 #get content
-                data['content'] = self.bsObj.find('div', class_='C4VMK').span
+                data['content'] = str(self.bsObj.find('div', class_='C4VMK').span)
                 
                 #get username
-                data['username'] = self.bsObj.find('div', class_='e1e1d').a.text
+                data['username'] = str(self.bsObj.find('div', class_='e1e1d').a.text)
 
                 #get likes
                 data['likes'] = 0 #default likes -> 0
@@ -240,10 +240,10 @@ class Crawler:
                 #get first img_url
 
                 try:
-                    data['img_url'] = self.bsObj.find('img', class_='FFVAD')['src'] #for image
+                    data['img_url'] = str(self.bsObj.find('img', class_='FFVAD')['src']) #for image
                 except:
                     try:
-                        data['img_url'] = self.bsObj.find('video', class_='tWeCl')['poster']  #for video poster
+                        data['img_url'] = str(self.bsObj.find('video', class_='tWeCl')['poster']) #for video poster
                     except:
                         return False
                 break
