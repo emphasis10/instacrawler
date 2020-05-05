@@ -137,8 +137,9 @@ class Crawler:
             except Exception as e:
                 logging.error(e)
                 time.sleep(0.5)
+                if waitcnt > 20:
+                    return None
                 if waitcnt > 10:
-                    waitcnt = 0
                     self.driver_post.refresh()
                     time.sleep(5)
 
@@ -160,11 +161,17 @@ class Crawler:
     
     def single_crawling(self, key):
         self.driver_post.get(self.posturl + key)
+        #if title start with '\n', it means deleted post
+        if str(self.driver_post.find_element_by_xpath('/html/head/title').get_attribute('innerHTML'))[0] == '\n':
+            print('Deleted post')
+            return False
+
 
         data = dict()
 
         #get postdate
         data['date'] = dateutil.parser.parse(self.safe_post_data('in_post_date', 'datetime'))
+        if data['date'] == None: return False
         data['date'] += datetime.timedelta(hours=9)
 
         if int((self.start_time.date() - data['date'].date()).days) > self.day_range:
