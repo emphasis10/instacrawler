@@ -127,7 +127,9 @@ class Crawler:
         time.sleep(15)
         return time_flag
     
-    def safe_post_data(self, path_name, attr = 'innerHTML'):
+    def safe_post_data(self, path_name, attr='innerHTML'):
+        #if title start with '\n', it means deleted post
+        
         waitcnt = 0
         while True:
             waitcnt += 1
@@ -135,6 +137,9 @@ class Crawler:
                 inner = self.driver_post.find_element_by_xpath(self.path[path_name]).get_attribute(attr)
                 return inner
             except Exception as e:
+                if str(self.driver_post.find_element_by_xpath('/html/head/title').get_attribute('innerHTML'))[0] == '\n':
+                    print('Deleted post')
+                    return None
                 logging.error(e)
                 time.sleep(0.5)
                 if waitcnt > 20:
@@ -161,11 +166,6 @@ class Crawler:
     
     def single_crawling(self, key):
         self.driver_post.get(self.posturl + key)
-        #if title start with '\n', it means deleted post
-        if str(self.driver_post.find_element_by_xpath('/html/head/title').get_attribute('innerHTML'))[0] == '\n':
-            print('Deleted post')
-            return False
-
 
         data = dict()
 
@@ -201,13 +201,18 @@ class Crawler:
         pageString = self.driver_post.page_source
         self.bsObj = BeautifulSoup(pageString, "lxml")
 
+        if self.bsObj.find('title').text[0] == '\n': return False
+        else: return True
+
     def single_crawling_bs4(self, key):
         self.driver_post.get(self.posturl + key)
         time.sleep(0.5)  #waiting for loading
-        
+
         data = dict()
         pageString = self.driver_post.page_source
         self.bsObj = BeautifulSoup(pageString, "lxml")
+
+        if self.bsObj.find('title').text[0] == '\n': return False
 
         counter = 0
         while True:
@@ -243,7 +248,7 @@ class Crawler:
                         return False
                 break
             except:
-                self.reloader()
+                if self.reloader() == False: return False
 
         '''
         if not data['img_url']:
