@@ -185,44 +185,52 @@ class Crawler:
         self.contents_db[key] = data
         return True
 
+    def reloader(self):
+        time.sleep(2)
+        self.driver_post.refresh()
+        time.sleep(3)
+        pageString = self.driver_post.page_source
+        self.bsObj = BeautifulSoup(pageString, "lxml")
+
+
     def single_crawling_bs4(self, key):
         self.driver_post.get(self.posturl + key)
-        date = dict()
+        time.sleep(0.5)  #waiting for loading
         
+        data = dict()
+        pageString = self.driver_post.page_source
+        self.bsObj = BeautifulSoup(pageString, "lxml")
+
         while True:
-            pageString = self.driver_post.page_source
-            bsObj = BeautifulSoup(pageString, "lxml")
             try:
-                data['date'] = dateutil.parser.parse(bsObj.find('a', class_='c-Yi7').time['datetime'])
+                data['date'] = dateutil.parser.parse(self.bsObj.find('a', class_='c-Yi7').time['datetime'])
+                data['date'] += datetime.timedelta(hours=9)
+
+                if int((self.start_time.date() - data['date'].date()).days) > self.day_range:
+                    return False
+
+                #get content
+                data['content'] = self.bsObj.find('div', class_='C4VMK').span
+                
+                #get username
+                data['username'] = self.bsObj.find('div', class_='C4VMK').h2.div.a.text
+
+                #get likes
+                data['likes'] = 0 #default likes -> 0
+                try:
+                    data['likes'] = int(self.bsObj.find('div', class_='Nm9Fw').button.span.text)
+                except: pass
+                
+                #get first img_url
+
+                try:
+                    data['img_url'] = self.bsObj.find('img', class_='FFVAD')['src'] #for image
+                except:
+                    data['img_url'] = self.bsObj.find('video', class_='tWeCl')['poster']  #for video poster
                 break
-            except: pass
-            time.sleep(5)
-            driver_post.refresh()
-            
-        data['date'] += datetime.timedelta(hours=9)
+            except:
+                self.reloader()
 
-        if int((self.start_time.date() - data['date'].date()).days) > self.day_range:
-            return False
-
-        #get content
-        data['content'] = bsObj.find('div', class_='C4VMK').span
-        
-        #get username
-        data['username'] = bsObj.find('div', class_='C4VMK').h2.div.a.text
-
-        #get likes
-        data['likes'] = 0 #default likes -> 0
-        try:
-            data['likes'] = int(bsObj.find('div', class_='Nm9Fw').button.span.text)
-        except: pass
-        
-        #get first img_url
-
-        try:
-            data['img_url'] = bsObj.find('img', class_='FFVAD')['src'] #for image
-        except:
-            data['img_url'] = bsObj.find('video', class_='tWeCl')['poster'] #for video poster
-        
         '''
         if not data['img_url']:
             return True
