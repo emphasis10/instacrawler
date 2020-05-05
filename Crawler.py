@@ -27,9 +27,6 @@ class Crawler:
         else:
             self.driver_dir = 'chromedriver.exe'  #for windows system
 
-        if platform.platform() == 'Linux-4.19.104+-x86_64-with-Ubuntu-18.04-bionic':
-            self.driver_dir = 'chromedriver'
-
         logging.basicConfig(filename='./Log/crawler.log', level=logging.INFO)
         #Set log file path and logging level
 
