@@ -23,9 +23,9 @@ from bs4 import BeautifulSoup
 class Crawler:
     def __init__(self):
         if platform.system() == "Linux":
-            self.driver_dir = './chromedriver' #for linux system
+            self.driver_dir = 'chromedriver' #for linux system
         else:
-            self.driver_dir = 'chromedriver.exe' #for windows system
+            self.driver_dir = 'chromedriver.exe'  #for windows system
 
         logging.basicConfig(filename='./Log/crawler.log', level=logging.INFO)
         #Set log file path and logging level
@@ -192,7 +192,6 @@ class Crawler:
         pageString = self.driver_post.page_source
         self.bsObj = BeautifulSoup(pageString, "lxml")
 
-
     def single_crawling_bs4(self, key):
         self.driver_post.get(self.posturl + key)
         time.sleep(0.5)  #waiting for loading
@@ -226,7 +225,7 @@ class Crawler:
                 try:
                     data['img_url'] = self.bsObj.find('img', class_='FFVAD')['src'] #for image
                 except:
-                    data['img_url'] = self.bsObj.find('video', class_='tWeCl')['poster']  #for video poster
+                    data['img_url'] = self.bsObj.find('video', class_='tWeCl')['poster'] #for video poster
                 break
             except:
                 self.reloader()
