@@ -45,7 +45,7 @@ class Crawler:
         self.start_time = datetime.datetime.now()
         self.contents_db = dict()
         self.link_collection = set()
-        self.batch_size = 100
+        self.batch_size = 36
 
         with open('path.json') as f:
             data = json.load(f)
@@ -123,7 +123,7 @@ class Crawler:
         time_flag = True
         for key in tqdm(self.link_collection):
             time_flag &= self.single_crawling_bs4(key)
-            time.sleep(float(random.randrange(2000, 2500) / 1000))
+            time.sleep(float(random.randrange(1800, 2100) / 1000))
         time.sleep(15)
         return time_flag
     
@@ -202,7 +202,10 @@ class Crawler:
         pageString = self.driver_post.page_source
         self.bsObj = BeautifulSoup(pageString, "lxml")
 
+        counter = 0
         while True:
+            counter += 1
+            #print('loop counter : ' + str(counter))
             try:
                 data['date'] = dateutil.parser.parse(self.bsObj.find('a', class_='c-Yi7').time['datetime'])
                 data['date'] += datetime.timedelta(hours=9)
@@ -214,7 +217,7 @@ class Crawler:
                 data['content'] = self.bsObj.find('div', class_='C4VMK').span
                 
                 #get username
-                data['username'] = self.bsObj.find('div', class_='C4VMK').h2.div.a.text
+                data['username'] = self.bsObj.find('div', class_='e1e1d').a.text
 
                 #get likes
                 data['likes'] = 0 #default likes -> 0
@@ -227,7 +230,10 @@ class Crawler:
                 try:
                     data['img_url'] = self.bsObj.find('img', class_='FFVAD')['src'] #for image
                 except:
-                    data['img_url'] = self.bsObj.find('video', class_='tWeCl')['poster'] #for video poster
+                    try:
+                        data['img_url'] = self.bsObj.find('video', class_='tWeCl')['poster']  #for video poster
+                    except:
+                        return False
                 break
             except:
                 self.reloader()
