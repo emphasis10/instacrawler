@@ -6,6 +6,7 @@ import os
 import time
 
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 class Preprocessing:
     def __init__(self):
@@ -50,11 +51,13 @@ class Preprocessing:
             with open(self.work, 'rb') as f:
                 self.raw_data = pickle.load(f)
             
-            for key, value in self.raw_data.items():
+            print('f_name : ' + self.work + ' started...')
+            for key, value in tqdm(self.raw_data.items()):
                 value['hashtags'] = self.hashtag_extract(key)
                 value['content'] = self.remove_tag(key)
                 self.commit_db(key, value)
             os.remove(self.work)
+            print('f_name : ' + self.work + ' finished...')
 
 if __name__ == "__main__":
     preproc = Preprocessing()
