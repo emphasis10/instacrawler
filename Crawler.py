@@ -123,7 +123,7 @@ class Crawler:
         time_flag = True
         for key in tqdm(self.link_collection):
             time_flag &= self.single_crawling_bs4(key)
-            time.sleep(float(random.randrange(1800, 2100) / 1000))
+            time.sleep(float(random.randrange(1300, 2200) / 1000))
         time.sleep(15)
         return time_flag
     
@@ -197,7 +197,7 @@ class Crawler:
     def reloader(self):
         time.sleep(2)
         self.driver_post.refresh()
-        time.sleep(3)
+        time.sleep(5)
         pageString = self.driver_post.page_source
         self.bsObj = BeautifulSoup(pageString, "lxml")
 
@@ -206,7 +206,6 @@ class Crawler:
 
     def single_crawling_bs4(self, key):
         self.driver_post.get(self.posturl + key)
-        time.sleep(0.5)  #waiting for loading
 
         data = dict()
         pageString = self.driver_post.page_source
