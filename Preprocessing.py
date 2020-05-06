@@ -23,6 +23,9 @@ class Preprocessing:
                 else:
                     ts = int(i.split('.')[0])
                     target = min(target, ts)
+        if target == None:
+            return None
+
         return str(target) + '.pickle'
 
     def hashtag_extract(self, key):
@@ -38,7 +41,6 @@ class Preprocessing:
 
     def commit_db(self, key, value):
         self.db.set(key, value)
-        self.db.dump()
         return True
 
     def run(self):
@@ -58,6 +60,7 @@ class Preprocessing:
                 value['date'] = str(value['date'])
                 self.commit_db(key, value)
             os.remove(self.work)
+            self.db.dump()
             print('f_name : ' + self.work + ' finished...')
 
 if __name__ == "__main__":
