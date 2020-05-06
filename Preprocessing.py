@@ -1,5 +1,6 @@
 #-*- coding: utf-8 -*-
 import pickle
+import pickledb
 import re
 import os
 import time
@@ -9,6 +10,7 @@ from bs4 import BeautifulSoup
 class Preprocessing:
     def __init__(self):
         self.regex = re.compile('>#(.*)<')
+        self.db = pickledb.load('post.db', True)
 
     def work_aloc(self):
         f_list = os.listdir()
@@ -34,6 +36,8 @@ class Preprocessing:
         return re.sub('<.+?>', '', content)
 
     def commit_db(self, key, value):
+        self.db.set(key, value)
+        self.db.dump()
         return True
 
     def run(self):
@@ -46,15 +50,12 @@ class Preprocessing:
             with open(self.work, 'rb') as f:
                 self.raw_data = pickle.load(f)
             
-            for key in self.raw_data:
-                hash_tags = self.hashtag_extract(key)
-                date = self.raw_data[key]['date']
-                content = self.remove_tag(key)
-                #img_url = self.raw_data[key]['img']
-                img_url = None
-                self.commit_db(key, {'hash_tags':hash_tags, 'date':date, 'content':content, 'img_url':img_url})
+            for key, value in self.raw_data.items():
+                value['hashtags'] = self.hashtag_extract(key)
+                value['content'] = self.remove_tag(key)
+                self.commit_db(key, value)
             os.remove(self.work)
 
 if __name__ == "__main__":
     preproc = Preprocessing()
-    reproc.run()
+    preproc.run()
