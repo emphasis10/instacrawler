@@ -34,7 +34,8 @@ class Preprocessing:
         soup = BeautifulSoup(self.raw_data[key]['content'], 'html.parser')
         tags = []
         for tag in soup.find_all('a'):
-            tags.append(self.regex.findall(str(tag)))
+            tags.join(self.regex.findall(str(tag)))
+        tags = list(set(tags))
         return tags
 
     def remove_tag(self, key):
