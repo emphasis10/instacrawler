@@ -4,6 +4,7 @@ import pickledb
 import re
 import os
 import time
+import logging
 
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -12,6 +13,7 @@ class Preprocessing:
     def __init__(self):
         self.regex = re.compile('>#(.*)<')
         self.db = pickledb.load('post.db', True)
+        logging.basicConfig(filename='./Log/preprocessor.log', level=logging.INFO)
 
     def work_aloc(self):
         f_list = os.listdir()
@@ -53,7 +55,7 @@ class Preprocessing:
             with open(self.work, 'rb') as f:
                 self.raw_data = pickle.load(f)
             
-            print('f_name : ' + self.work + ' started...')
+            logging.info('f_name : ' + self.work + ' started...')
             for key, value in tqdm(self.raw_data.items()):
                 value['hashtags'] = self.hashtag_extract(key)
                 value['content'] = self.remove_tag(key)
@@ -61,7 +63,7 @@ class Preprocessing:
                 self.commit_db(key, value)
             os.remove(self.work)
             self.db.dump()
-            print('f_name : ' + self.work + ' finished...')
+            logging.info('f_name : ' + self.work + ' finished...')
 
 if __name__ == "__main__":
     preproc = Preprocessing()
