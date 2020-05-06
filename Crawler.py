@@ -8,9 +8,11 @@ import pickle
 import os
 import csv
 import logging
+import pickledb
 
 import dateutil.parser
 
+from filelock import Timeout, FileLock
 from tqdm import tqdm
 from urllib import parse 
 from selenium import webdriver
@@ -45,7 +47,14 @@ class Crawler:
         self.start_time = datetime.datetime.now()
         self.contents_db = dict()
         self.link_collection = set()
-        self.batch_size = 36
+        self.batch_size = 72
+        self.id_pool = set()
+
+        lock = FileLock("post.db.lock")
+        with lock:
+            db = pickledb.load('post.db', False)
+            self.id_pool = set(db.getall())
+            del db
 
         with open('path.json') as f:
             data = json.load(f)
@@ -63,7 +72,7 @@ class Crawler:
             my_password = acc['password']
 
         driver.get(self.login_url)
-        time.sleep(3)
+        time.sleep(5)
         driver.find_element_by_xpath("//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[2]/div/label/input").send_keys(my_id)
         driver.find_element_by_xpath("//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[3]/div/label/input").send_keys(my_password)
         driver.find_element_by_xpath("//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[4]/button").click()
@@ -149,7 +158,6 @@ class Crawler:
         counter = 0
         while True:
             counter += 1
-            #print('loop counter : ' + str(counter))
             try:
                 data['date'] = dateutil.parser.parse(self.bsObj.find('a', class_='c-Yi7').time['datetime'])
                 data['date'] += datetime.timedelta(hours=9)
@@ -182,10 +190,6 @@ class Crawler:
             except:
                 if self.reloader() == False: return False
 
-        '''
-        if not data['img_url']:
-            return True
-        '''
         self.contents_db[key] = data
         return True
 

@@ -6,13 +6,14 @@ import os
 import time
 import logging
 
+from filelock import Timeout, FileLock
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 class Preprocessing:
     def __init__(self):
         self.regex = re.compile('>#(.*)<')
-        self.db = pickledb.load('post.db', True)
+        #self.db = pickledb.load('post.db', True)
         logging.basicConfig(filename='./Log/preprocessor.log', level=logging.INFO)
 
     def work_aloc(self):
@@ -42,9 +43,11 @@ class Preprocessing:
         content = self.raw_data[key]['content']
         return re.sub('<.+?>', '', content)
 
+    '''
     def commit_db(self, key, value):
         self.db.set(key, value)
         return True
+    '''
 
     def run(self):
         while True:
@@ -56,15 +59,19 @@ class Preprocessing:
             with open(self.work, 'rb') as f:
                 self.raw_data = pickle.load(f)
             
-            logging.info('f_name : ' + self.work + ' started...')
-            for key, value in tqdm(self.raw_data.items()):
-                value['hashtags'] = self.hashtag_extract(key)
-                value['content'] = self.remove_tag(key)
-                value['date'] = str(value['date'])
-                self.commit_db(key, value)
-            os.remove(self.work)
-            self.db.dump()
-            logging.info('f_name : ' + self.work + ' finished...')
+            lock = FileLock("post.db.lock")
+            with lock:
+                db = pickledb.load('post.db', False)
+                logging.info('f_name : ' + self.work + ' started...')
+                for key, value in tqdm(self.raw_data.items()):
+                    value['hashtags'] = self.hashtag_extract(key)
+                    value['content'] = self.remove_tag(key)
+                    value['date'] = str(value['date'])
+
+                    #self.commit_db(key, value)
+                os.remove(self.work)
+                db.dump()
+                logging.info('f_name : ' + self.work + ' finished...')
 
 if __name__ == "__main__":
     preproc = Preprocessing()
