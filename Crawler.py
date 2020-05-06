@@ -115,6 +115,7 @@ class Crawler:
                 for i in range(3):
                     cur_url = self.driver.find_element_by_xpath(tmp_url + '/div[' + str(i + 1) + ']/a').get_attribute('href')
                     cur_id = cur_url.split('/')[-2]
+                    if cur_id in self.id_pool: continue
                     if cur_id not in self.link_collection and cur_id not in self.contents_db:
                         new_post = True
                         self.link_collection.add(cur_id)
