@@ -67,8 +67,7 @@ class Preprocessing:
                     value['hashtags'] = self.hashtag_extract(key)
                     value['content'] = self.remove_tag(key)
                     value['date'] = str(value['date'])
-
-                    #self.commit_db(key, value)
+                    db.set(key, value)
                 os.remove(self.work)
                 db.dump()
                 logging.info('f_name : ' + self.work + ' finished...')
