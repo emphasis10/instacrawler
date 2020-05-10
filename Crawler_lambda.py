@@ -28,11 +28,16 @@ class Crawler:
         self.posturl = "https://www.instagram.com/p/"
         self.login_url = "https://www.instagram.com/accounts/login/"
 
-        self.station_list = []
-        with open('station.csv', 'r', encoding='utf-8') as f:
-            tmp = csv.reader(f)
-            for name in tmp:
-                self.station_list.append(name[0])
+        self.dynamodb = boto3.resource('dynamodb')
+        self.table = self.dynamodb.Table('InstaTourSeedTag')
+
+        all_key = []
+        for tag in self.table.scan()['Items']:
+            all_key.append(tag['tag'])
+        self.station_list = random.sample(all_key, 10)
+        # select random 10 tags
+
+        self.table = self.dynamodb.Table('InstaTourRawData')
 
         self.suffix_list = ['']
         self.driver_setting()
@@ -43,8 +48,6 @@ class Crawler:
         self.id_pool = set()
 
         self.regex = re.compile('>#(.*)<')
-        self.dynamodb = boto3.resource('dynamodb')
-        self.table = self.dynamodb.Table('InstaTourRawData')
 
         # 이 부분 dynamoDB 연동 부분으로 변경해야 함.
         # 생략 가능
@@ -147,15 +150,7 @@ class Crawler:
     def batch_crawling(self):
         time_flag = True
         for key in self.link_collection:
-            single_suc = self.single_crawling_bs4(key)
-            time_flag &= single_suc
-            #time.sleep(float(random.randrange(800, 1500) / 1000))
-            if single_suc:
-                self.contents_db[key]['hashtags'] = self.hashtag_extract(key)
-                self.contents_db[key]['content'] = self.remove_tag(key)
-                self.contents_db[key]['date'] = str(
-                    self.contents_db[key]['date'])
-                self.commit_db(key, self.contents_db[key])
+            time_flag &= self.single_crawling_bs4(key)
         time.sleep(5)
         return time_flag
 
@@ -253,6 +248,12 @@ class Crawler:
                     if load_flag and batch_flag:
                         continue
                     break
+
+                for key, value in self.contents_db.items():
+                    value['hashtags'] = self.hashtag_extract(key)
+                    value['content'] = self.remove_tag(key)
+                    value['date'] = str(value['date'])
+                    self.commit_db(key, self.contents_db[key])
 
 
 if __name__ == "__main__":
