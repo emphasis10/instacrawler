@@ -8,7 +8,6 @@ import boto3
 import json
 
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 
 
 class Preprocessing:
@@ -67,7 +66,7 @@ class Preprocessing:
             with open(self.work, 'rb') as f:
                 self.raw_data = pickle.load(f)
 
-            for key, value in tqdm(self.raw_data.items()):
+            for key, value in self.raw_data.items():
                 value['hashtags'] = self.hashtag_extract(key)
                 value['content'] = self.remove_tag(key)
                 value['date'] = str(value['date'])

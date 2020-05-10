@@ -11,7 +11,6 @@ import csv
 
 import dateutil.parser
 
-from tqdm import tqdm
 from urllib import parse
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -23,7 +22,7 @@ from bs4 import BeautifulSoup
 
 class Crawler:
     def __init__(self):
-        self.driver_dir = '/opt/chromedriver'
+        self.driver_dir = '/opt/python/chromedriver'
         self.urlbase = "https://www.instagram.com/explore/tags/"
         self.posturl = "https://www.instagram.com/p/"
         self.login_url = "https://www.instagram.com/accounts/login/"
@@ -74,7 +73,7 @@ class Crawler:
 
     def driver_setting(self):
         options = webdriver.ChromeOptions()
-        options.binary_location = '/opt/headless-chromium'
+        options.binary_location = '/opt/python/headless-chromium'
         options.add_argument('headless')
         options.add_argument('window-size=1920x1080')
         options.add_argument('disable-gpu')
@@ -132,7 +131,7 @@ class Crawler:
 
     def batch_crawling(self):
         time_flag = True
-        for key in tqdm(self.link_collection):
+        for key in self.link_collection:
             time_flag &= self.single_crawling_bs4(key)
             time.sleep(float(random.randrange(800, 1500) / 1000))
         time.sleep(5)
