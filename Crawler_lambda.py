@@ -5,9 +5,10 @@ import random
 import re
 import platform
 import json
-import pickle
 import os
 import csv
+import json
+import boto3
 
 import dateutil.parser
 
@@ -41,6 +42,10 @@ class Crawler:
         self.batch_size = 72
         self.id_pool = set()
 
+        self.regex = re.compile('>#(.*)<')
+        self.dynamodb = boto3.resource('dynamodb')
+        self.table = self.dynamodb.Table('InstaTourRawData')
+
         # 이 부분 dynamoDB 연동 부분으로 변경해야 함.
         # 생략 가능
         '''db = pickledb.load('post.db', False)
@@ -54,22 +59,6 @@ class Crawler:
     def __del__(self):
         self.driver.close()
         self.driver_post.close()
-
-    def login(self, driver):
-        with open('account.json') as f:
-            acc = json.load(f)
-            my_id = acc['id']
-            my_password = acc['password']
-
-        driver.get(self.login_url)
-        time.sleep(5)
-        driver.find_element_by_xpath(
-            "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[2]/div/label/input").send_keys(my_id)
-        driver.find_element_by_xpath(
-            "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[3]/div/label/input").send_keys(my_password)
-        driver.find_element_by_xpath(
-            "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[4]/button").click()
-        time.sleep(5)
 
     def driver_setting(self):
         options = webdriver.ChromeOptions()
@@ -129,11 +118,41 @@ class Crawler:
             time.sleep(3)
         return True
 
+    def hashtag_extract(self, key):
+        soup = BeautifulSoup(self.contents_db[key]['content'], 'html.parser')
+        tags = []
+        for tag in soup.find_all('a'):
+            tags += self.regex.findall(str(tag))
+        tags = list(set(tags))
+        return tags
+
+    def remove_tag(self, key):
+        content = self.contents_db[key]['content']
+        return re.sub('<.+?>', '', content)
+
+    def commit_db(self, key, value):
+        self.table.put_item(
+            Item={
+                'key': key,
+                'username': value['username'],
+                'date': value['date'],
+                'content': value['content'],
+                'likes': value['likes'],
+                'img_url': value['img_url'],
+                'hashtags': value['hashtag'],
+            }
+        )
+        return True
+
     def batch_crawling(self):
         time_flag = True
         for key in self.link_collection:
             time_flag &= self.single_crawling_bs4(key)
-            time.sleep(float(random.randrange(800, 1500) / 1000))
+            #time.sleep(float(random.randrange(800, 1500) / 1000))
+            self.contents_db[key]['hashtags'] = self.hashtag_extract(key)
+            self.contents_db[key]['content'] = self.remove_tag(key)
+            self.contents_db[key]['date'] = str(value['date'])
+            self.commit_db(key, contents_db[key])
         time.sleep(5)
         return time_flag
 
@@ -206,10 +225,6 @@ class Crawler:
         return True
 
     def run(self):
-        # 일단은 사용자 계정 사용 안하고 크롤링 해보는 걸로..
-        # self.login(self.driver)
-        # self.login(self.driver_post)
-
         for station in self.station_list:
             for suffix in self.suffix_list:
                 self.contents_db.clear()
@@ -235,11 +250,6 @@ class Crawler:
                     if load_flag and batch_flag:
                         continue
                     break
-
-                fname = str(
-                    int(datetime.datetime.now().timestamp())) + '.pickle'
-                with open(fname, 'wb') as f:
-                    pickle.dump(self.contents_db, f)
 
 
 if __name__ == "__main__":
