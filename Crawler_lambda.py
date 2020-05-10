@@ -34,7 +34,7 @@ class Crawler:
         all_key = []
         for tag in self.table.scan()['Items']:
             all_key.append(tag['tag'])
-        self.station_list = random.sample(all_key, 10)
+        self.station_list = random.sample(all_key, 5)
         # select random 10 tags
 
         self.table = self.dynamodb.Table('InstaTourRawData')
