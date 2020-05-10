@@ -139,7 +139,7 @@ class Crawler:
                 'content': value['content'],
                 'likes': value['likes'],
                 'img_url': value['img_url'],
-                'hashtags': value['hashtag'],
+                'hashtags': value['hashtags'],
             }
         )
         return True
@@ -147,12 +147,15 @@ class Crawler:
     def batch_crawling(self):
         time_flag = True
         for key in self.link_collection:
-            time_flag &= self.single_crawling_bs4(key)
+            single_suc = self.single_crawling_bs4(key)
+            time_flag &= single_suc
             #time.sleep(float(random.randrange(800, 1500) / 1000))
-            self.contents_db[key]['hashtags'] = self.hashtag_extract(key)
-            self.contents_db[key]['content'] = self.remove_tag(key)
-            self.contents_db[key]['date'] = str(self.contents_db[key]['date'])
-            self.commit_db(key, self.contents_db[key])
+            if single_suc:
+                self.contents_db[key]['hashtags'] = self.hashtag_extract(key)
+                self.contents_db[key]['content'] = self.remove_tag(key)
+                self.contents_db[key]['date'] = str(
+                    self.contents_db[key]['date'])
+                self.commit_db(key, self.contents_db[key])
         time.sleep(5)
         return time_flag
 
