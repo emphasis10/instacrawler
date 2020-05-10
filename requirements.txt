@@ -2,3 +2,4 @@ selenium
 tqdm
 beautifulsoup4
 pickledb
+lxml
