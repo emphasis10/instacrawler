@@ -51,7 +51,7 @@ class Crawler:
         '''db = pickledb.load('post.db', False)
         self.id_pool = set(db.getall())'''
 
-        with open('path.json') as f:
+        with open('/opt/python/path.json') as f:
             data = json.load(f)
             self.path = data['path']
             self.day_range = int(data['range'])
@@ -151,8 +151,8 @@ class Crawler:
             #time.sleep(float(random.randrange(800, 1500) / 1000))
             self.contents_db[key]['hashtags'] = self.hashtag_extract(key)
             self.contents_db[key]['content'] = self.remove_tag(key)
-            self.contents_db[key]['date'] = str(value['date'])
-            self.commit_db(key, contents_db[key])
+            self.contents_db[key]['date'] = str(self.contents_db[key]['date'])
+            self.commit_db(key, self.contents_db[key])
         time.sleep(5)
         return time_flag
 
